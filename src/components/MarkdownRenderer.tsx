@@ -20,14 +20,19 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
         li: ({node, ...props}) => <li className="mb-1" {...props} />,
         strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
         a: ({node, ...props}) => <a className="text-primary-600 hover:underline" {...props} />,
-        code: ({node, inline, ...props}) =>
-          inline ? (
-            <code className="bg-gray-200 text-gray-800 rounded px-1 py-0.5 text-sm" {...props} />
-          ) : (
-            <pre className="bg-gray-800 text-white p-2 rounded-md my-2 overflow-x-auto">
-              <code {...props} />
-            </pre>
-          ),
+        code: (props) => {
+            const { inline, className, children, ...rest } = props as any;
+            if (inline) {
+                return <code className="bg-gray-200 text-gray-800 rounded px-1 py-0.5 text-sm" {...rest}>{children}</code>;
+            }
+            return (
+                <pre className="bg-gray-800 text-white p-2 rounded-md my-2 overflow-x-auto">
+                    <code className={className} {...rest}>
+                        {children}
+                    </code>
+                </pre>
+            );
+        },
       }}
     >
       {content}
