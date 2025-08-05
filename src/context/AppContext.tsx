@@ -6,6 +6,8 @@ import { GoogleGenAI } from '@google/genai';
 const AUTH_TOKEN_KEY = 'dental-lab-token';
 const API_BASE_URL = 'https://dental-lab-be.onrender.com/api';
 
+declare const process: any;
+
 // Per instructions, API_KEY is assumed to be in the environment.
 const ai = process.env.API_KEY ? new GoogleGenAI({ apiKey: process.env.API_KEY }) : null;
 
@@ -258,7 +260,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             config: { systemInstruction }
         });
 
-        dispatch({ type: 'SEND_CHAT_MESSAGE_SUCCESS', payload: response.text });
+        dispatch({ type: 'SEND_CHAT_MESSAGE_SUCCESS', payload: response.text ?? '' });
 
     } catch (error: any) {
         console.error("Error calling Gemini API:", error);
