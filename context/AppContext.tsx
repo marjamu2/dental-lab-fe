@@ -1,20 +1,15 @@
 
-import React, { createContext, useReducer, useContext, ReactNode, useEffect, useCallback } from 'react';
-import { AppState, Client, Product, Supplier, WorkOrder, OrderStatus, Action, ChatMessage, User } from '../types';
+import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
+import { AppState, Client, Product, Supplier, WorkOrder, Action, User, ChatMessage } from '../types';
 import { GoogleGenAI } from '@google/genai';
 
-const LOCAL_STORAGE_KEY = 'dental-lab-data';
 const AUTH_TOKEN_KEY = 'dental-lab-token';
-
-// Para desarrollo local, descomente la siguiente línea y comente la de producción:
-// const API_BASE_URL = 'http://localhost:5000/api';
-
-// URL para el servidor de producción en Render. Asegúrese que coincida con su servicio.
 const API_BASE_URL = 'https://dental-lab-be.onrender.com/api';
 
 declare const process: any;
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Per instructions, API_KEY is assumed to be in the environment.
+const ai = process.env.API_KEY ? new GoogleGenAI({ apiKey: process.env.API_KEY }) : null;
 
 const initialState: AppState = {
   clients: [],
@@ -46,7 +41,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
             };
         case 'LOGOUT':
             localStorage.removeItem(AUTH_TOKEN_KEY);
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
             return {
                 ...initialState,
                 isInitialized: true,
@@ -142,9 +136,11 @@ interface AppContextType {
 const AppContext = createContext<AppContextType>({} as AppContextType);
 
 const fetcher = async (url: string, options?: RequestInit, token?: string | null) => {
-    const headers = { ...options?.headers, 'Content-Type': 'application/json' };
+    const headers = new Headers(options?.headers);
+    headers.set('Content-Type', 'application/json');
+
     if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers.set('Authorization', `Bearer ${token}`);
     }
     
     const res = await fetch(url, { ...options, headers });
@@ -225,6 +221,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const toggleChat = () => dispatch({ type: 'TOGGLE_CHAT' });
 
   const sendMessageToAI = async (message: string) => {
+    if (!ai) {
+        const errorMessage = "La configuración de la API de IA no está disponible.";
+        dispatch({ type: 'SEND_CHAT_MESSAGE_ERROR', payload: errorMessage });
+        return;
+    }
     if (!state.user) return; // Must be logged in
     dispatch({ type: 'SEND_CHAT_MESSAGE_START', payload: message });
     try {
