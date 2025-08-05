@@ -12,6 +12,7 @@ const AUTH_TOKEN_KEY = 'dental-lab-token';
 // URL para el servidor de producción en Render. Asegúrese que coincida con su servicio.
 const API_BASE_URL = 'https://dental-lab-be.onrender.com/api';
 
+declare const process: any;
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -258,7 +259,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             config: { systemInstruction }
         });
 
-        dispatch({ type: 'SEND_CHAT_MESSAGE_SUCCESS', payload: response.text });
+        dispatch({ type: 'SEND_CHAT_MESSAGE_SUCCESS', payload: response.text ?? '' });
 
     } catch (error: any) {
         console.error("Error calling Gemini API:", error);
