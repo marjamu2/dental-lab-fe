@@ -5,7 +5,7 @@ import { ToothIcon } from './icons';
 import { LoadingSpinner } from './LoadingSpinner';
 
 export const Login: React.FC = () => {
-    const { login, register, state } = useAppContext();
+    const { login, register } = useAppContext();
     const navigate = useNavigate();
     const [isLoginView, setIsLoginView] = useState(true);
     const [email, setEmail] = useState('');
