@@ -9,6 +9,7 @@ const API_BASE_URL = 'https://dental-lab-be.onrender.com/api';
 declare const process: any;
 
 // Per instructions, API_KEY is assumed to be in the environment.
+console.log("Using API key from environment:", process.env.VITE_API_KEY);
 const ai = process.env.VITE_API_KEY ? new GoogleGenAI({ apiKey: process.env.VITE_API_KEY }) : null;
 
 const initialState: AppState = {
