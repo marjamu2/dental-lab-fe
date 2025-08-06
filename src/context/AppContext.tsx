@@ -1,5 +1,5 @@
 import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
-import { AppState, Client, Product, Supplier, WorkOrder, Action, User, ChatMessage } from '../types';
+import { AppState, Client, Product, Supplier, WorkOrder, Action} from '../types';
 import { GoogleGenAI } from '@google/genai';
 
 const AUTH_TOKEN_KEY = 'dental-lab-token';
