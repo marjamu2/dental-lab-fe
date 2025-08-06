@@ -1,6 +1,5 @@
-
 import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
-import { AppState, Client, Product, Supplier, WorkOrder, Action} from '../types';
+import { AppState, Client, Product, Supplier, WorkOrder, Action, User, ChatMessage } from '../types';
 import { GoogleGenAI } from '@google/genai';
 
 const AUTH_TOKEN_KEY = 'dental-lab-token';
@@ -9,7 +8,6 @@ const API_BASE_URL = 'https://dental-lab-be.onrender.com/api';
 declare const process: any;
 
 // Per instructions, API_KEY is assumed to be in the environment.
-console.log("Using API key from environment:", process.env.API_KEY);
 const ai = process.env.API_KEY ? new GoogleGenAI({ apiKey: process.env.API_KEY }) : null;
 
 const initialState: AppState = {
@@ -116,7 +114,6 @@ const appReducer = (state: AppState, action: Action): AppState => {
 interface AppContextType {
     state: AppState;
     login: (credentials: { email: string, password: string}) => Promise<void>;
-    register: (credentials: { email: string, password: string, role?: 'user' | 'admin'}) => Promise<void>;
     logout: () => void;
     addClient: (client: Omit<Client, 'id'>) => Promise<void>;
     updateClient: (client: Client) => Promise<void>;
@@ -207,13 +204,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         throw error; // Re-throw to be caught in component
     }
   };
-  
-  const register = async (credentials: { email: string, password: string, role?: 'user' | 'admin'}) => {
-      await fetcher(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
-        body: JSON.stringify(credentials)
-      });
-  }
 
   const logout = () => {
     dispatch({ type: 'LOGOUT' });
@@ -357,7 +347,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const contextValue: AppContextType = {
       state,
       login,
-      register,
       logout,
       addClient,
       updateClient,
