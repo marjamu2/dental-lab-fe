@@ -122,7 +122,7 @@ export const Login: React.FC = () => {
 
                     <div className="mt-6 text-center">
                         <button onClick={() => { setIsLoginView(!isLoginView); setError(''); }} className="text-sm text-primary-600 hover:text-primary-500">
-                            {isLoginView ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+                            {isLoginView ? '¿pruebaNo tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
                         </button>
                     </div>
                 </div>
