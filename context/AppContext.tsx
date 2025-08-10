@@ -1,15 +1,19 @@
-
 import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
-import { AppState, Client, Product, Supplier, WorkOrder, Action, User, ChatMessage } from '../types';
+import type { AppState, Client, Product, Supplier, WorkOrder, Action } from '../types';
 import { GoogleGenAI } from '@google/genai';
 
+const LOCAL_STORAGE_KEY = 'dental-lab-data';
 const AUTH_TOKEN_KEY = 'dental-lab-token';
+
+// Para desarrollo local, descomente la siguiente línea y comente la de producción:
+// const API_BASE_URL = 'http://localhost:5000/api';
+
+// URL para el servidor de producción en Render. Asegúrese que coincida con su servicio.
 const API_BASE_URL = 'https://dental-lab-be.onrender.com/api';
 
 declare const process: any;
 
-// Per instructions, API_KEY is assumed to be in the environment.
-const ai = process.env.API_KEY ? new GoogleGenAI({ apiKey: process.env.API_KEY }) : null;
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const initialState: AppState = {
   clients: [],
@@ -41,6 +45,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
             };
         case 'LOGOUT':
             localStorage.removeItem(AUTH_TOKEN_KEY);
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
             return {
                 ...initialState,
                 isInitialized: true,
@@ -117,6 +122,7 @@ interface AppContextType {
     login: (credentials: { email: string, password: string}) => Promise<void>;
     register: (credentials: { email: string, password: string, role?: 'user' | 'admin'}) => Promise<void>;
     logout: () => void;
+    changePassword: (passwords: { currentPassword: string, newPassword: string }) => Promise<void>;
     addClient: (client: Omit<Client, 'id'>) => Promise<void>;
     updateClient: (client: Client) => Promise<void>;
     deleteClient: (id: string) => Promise<void>;
@@ -138,7 +144,6 @@ const AppContext = createContext<AppContextType>({} as AppContextType);
 const fetcher = async (url: string, options?: RequestInit, token?: string | null) => {
     const headers = new Headers(options?.headers);
     headers.set('Content-Type', 'application/json');
-
     if (token) {
         headers.set('Authorization', `Bearer ${token}`);
     }
@@ -218,14 +223,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     dispatch({ type: 'LOGOUT' });
   };
   
+  const changePassword = async (passwords: { currentPassword: string, newPassword: string }) => {
+      try {
+        await fetcher(`${API_BASE_URL}/auth/change-password`, {
+            method: 'POST',
+            body: JSON.stringify(passwords),
+        }, state.token);
+      } catch (error: any) {
+          console.error("Error changing password:", error);
+          throw error;
+      }
+  };
+
   const toggleChat = () => dispatch({ type: 'TOGGLE_CHAT' });
 
   const sendMessageToAI = async (message: string) => {
-    if (!ai) {
-        const errorMessage = "La configuración de la API de IA no está disponible.";
-        dispatch({ type: 'SEND_CHAT_MESSAGE_ERROR', payload: errorMessage });
-        return;
-    }
     if (!state.user) return; // Must be logged in
     dispatch({ type: 'SEND_CHAT_MESSAGE_START', payload: message });
     try {
@@ -358,6 +370,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       login,
       register,
       logout,
+      changePassword,
       addClient,
       updateClient,
       deleteClient,
