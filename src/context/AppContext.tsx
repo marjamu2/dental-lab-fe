@@ -1,5 +1,5 @@
-import React, { createContext, useReducer, useContext, ReactNode, useEffect, useCallback } from 'react';
-import { AppState, Client, Product, Supplier, WorkOrder, OrderStatus, Action, ChatMessage, User } from '../types';
+import React, { createContext, useReducer, useContext, ReactNode, useEffect } from 'react';
+import type { AppState, Client, Product, Supplier, WorkOrder, Action } from '../types';
 import { GoogleGenAI } from '@google/genai';
 
 const LOCAL_STORAGE_KEY = 'dental-lab-data';
@@ -142,9 +142,10 @@ interface AppContextType {
 const AppContext = createContext<AppContextType>({} as AppContextType);
 
 const fetcher = async (url: string, options?: RequestInit, token?: string | null) => {
-    const headers = { ...options?.headers, 'Content-Type': 'application/json' };
+    const headers = new Headers(options?.headers);
+    headers.set('Content-Type', 'application/json');
     if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+        headers.set('Authorization', `Bearer ${token}`);
     }
     
     const res = await fetch(url, { ...options, headers });
