@@ -95,7 +95,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, on
                 <button 
                     type="button" 
                     onClick={onConfirm} 
-                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    className="bg-green-600 text-gray px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
                     Aceptar
                 </button>
