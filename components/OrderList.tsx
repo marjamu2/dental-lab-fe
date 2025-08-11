@@ -1,11 +1,11 @@
-
 import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { WorkOrder, OrderStatus } from '../types';
+import { WorkOrder, OrderStatus, Client } from '../types';
 import { Modal } from './Modal';
 import { OrderForm } from './OrderForm';
 import { ConfirmationModal } from './ConfirmationModal';
 import { PlusIcon, PencilIcon, TrashIcon, EmailIcon } from './icons';
+import { NotificationModal } from './NotificationModal.tsx';
 
 const StatusBadge: React.FC<{ status: OrderStatus }> = ({ status }) => {
   const colorMap: Record<OrderStatus, string> = {
@@ -29,6 +29,7 @@ export const OrderList: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<WorkOrder | null>(null);
   const [confirmModalState, setConfirmModalState] = useState<{isOpen: boolean; idToDelete: string | null}>({isOpen: false, idToDelete: null});
+  const [notificationModalState, setNotificationModalState] = useState<{isOpen: boolean; order: WorkOrder | null}>({isOpen: false, order: null});
 
   const handleOpenModal = (order?: WorkOrder) => {
     setEditingOrder(order || null);
@@ -64,21 +65,26 @@ export const OrderList: React.FC = () => {
     handleCloseConfirmModal();
   };
 
-  const handleNotifyClient = (order: WorkOrder) => {
+  const handleRequestNotification = (order: WorkOrder) => {
     const client = state.clients.find(c => c.id === order.clientId);
     if (!client) {
-      alert('Error: Cliente no encontrado.');
-      return;
+        alert('Error: Cliente no encontrado para esta orden.');
+        return;
     }
+    setNotificationModalState({ isOpen: true, order: order });
+  };
+  
+  const handleCloseNotificationModal = () => {
+    setNotificationModalState({ isOpen: false, order: null });
+  };
 
-    const confirmation = window.confirm(
-      `Se enviará una notificación por correo a ${client.name} (${client.email}) para la orden del paciente "${order.patientName}".\n\n¿Desea continuar?`
-    );
-
-    if (confirmation) {
-      // In a real application, you would make an API call to a backend service here.
-      alert(`(Simulación) Correo de notificación enviado a ${client.email}.`);
+  const handleConfirmNotification = () => {
+    if (notificationModalState.order) {
+        const client = state.clients.find(c => c.id === notificationModalState.order!.clientId);
+        // In a real application, you would make an API call to a backend service here.
+        alert(`(Simulación) Correo de notificación enviado a ${client?.email}.`);
     }
+    handleCloseNotificationModal();
   };
   
   const formatPrice = (price: number) => {
@@ -112,6 +118,11 @@ export const OrderList: React.FC = () => {
   const sortedOrders = useMemo(() => {
     return [...state.orders].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   }, [state.orders]);
+  
+  const clientForNotification: Client | undefined = useMemo(() => {
+    if (!notificationModalState.order) return undefined;
+    return state.clients.find(c => c.id === notificationModalState.order!.clientId);
+  }, [notificationModalState.order, state.clients]);
 
   return (
     <div className="p-6">
@@ -151,7 +162,7 @@ export const OrderList: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                   {order.status === OrderStatus.Listo && (
                     <button 
-                        onClick={() => handleNotifyClient(order)} 
+                        onClick={() => handleRequestNotification(order)} 
                         className="text-green-600 hover:text-green-900 p-1 rounded-full hover:bg-green-100"
                         title="Notificar al cliente por correo"
                         aria-label="Notificar al cliente por correo"
@@ -180,6 +191,16 @@ export const OrderList: React.FC = () => {
       >
         <p>¿Estás seguro de que quieres eliminar esta orden de trabajo? Esta acción no se puede deshacer.</p>
       </ConfirmationModal>
+
+      {notificationModalState.order && clientForNotification && (
+        <NotificationModal
+            isOpen={notificationModalState.isOpen}
+            onClose={handleCloseNotificationModal}
+            onConfirm={handleConfirmNotification}
+            order={notificationModalState.order}
+            client={clientForNotification}
+        />
+      )}
     </div>
   );
 };
